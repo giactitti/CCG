@@ -1,0 +1,10 @@
+var dataset = ee.Image("LANDSAT/LC08/C02/T1_L2/LC08_001004_20140609");
+print(dataset)
+
+var trueColor = dataset.select(['SR_B4', 'SR_B3', 'SR_B2']);
+
+print(trueColor,'RGB')
+
+Map.centerObject(dataset, 5);
+
+Map.addLayer(trueColor, {min: 0, max: 30000}, 'True Color');
