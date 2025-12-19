@@ -2,7 +2,7 @@
 var imageVisParam = {"opacity":1,"bands":["temperature_2m"],"min":223.27963983727597,"max":309.15691422948026,"palette":["000004","410967","932567","f16e43","fcffa4"]};
 /***** End of imports. If edited, may not auto-convert in the playground. *****/
 var jan2023Climate = ee.ImageCollection('ECMWF/ERA5_LAND/MONTHLY_AGGR').filterDate('2023-01-01', '2023-02-01').first();
-print('jan2023Climate', jan2023Climate);
+print('jan2023Climate', jan2023Climate.select('temperature_2m'));
 
 var visParams = {
   bands: ['temperature_2m'],
@@ -22,4 +22,8 @@ var cities = ee.FeatureCollection([
 print('cities', cities);
 
 Map.addLayer(cities, null, 'Cities');
+
+var cityClimates = jan2023Climate.reduceRegions(cities, ee.Reducer.first());
+print('cityClimates', cityClimates);
+
 
