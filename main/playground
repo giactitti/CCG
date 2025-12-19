@@ -26,4 +26,15 @@ Map.addLayer(cities, null, 'Cities');
 var cityClimates = jan2023Climate.reduceRegions(cities, ee.Reducer.first());
 print('cityClimates', cityClimates);
 
+var chart = ui.Chart.feature.byFeature(cityClimates, 'city', 'temperature_2m')
+  .setChartType('ColumnChart')
+  .setOptions({
+    title: 'January 2023 temperature for selected cities',
+    hAxis: {title: 'City'},
+    vAxis: {title: 'Temperature (K)'},
+    legend: {position: 'none'}
+  });
+
+print(chart);
+
 
