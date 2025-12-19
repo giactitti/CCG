@@ -15,19 +15,34 @@ var s2collection = ee.ImageCollection('COPERNICUS/S2_SR_HARMONIZED')
   .filterDate(ee.Date.fromYMD(startYear, 1, 1) ,ee.Date.fromYMD(endYear, 12, 31))
   .filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 20));
 
-  
+print(s2collection)
+
+/*
+var rgbVis = {
+  bands: ['B4', 'B3', 'B2'], // Red, Green, Blue
+  min: 0,
+  max: 3000,
+  gamma: 1.2
+};
+Map.addLayer(s2collection.first(),rgbVis,'rgb')
+*/
 
 
-var cloud_low = s2collection.first().select('SCL').eq([6]);
-var cloud_med = s2collection.first().select('SCL').eq([8]);
-var cloud_high = s2collection.first().select('SCL').eq([9]); 
-var cloud_mask = cloud_low.add(cloud_med).add(cloud_high); 
-var invert_mask = cloud_mask.eq(0).selfMask();
+function maskS2clouds(image){
+  var nodata = image.select('SCL').eq([0]);
+  var saturated = image.select('SCL').eq([1]);
+  var dark_area = image.select('SCL').eq([2]);
+  var cloud_shadow = image.select('SCL').eq([3]);
+  var cloud_low = image.select('SCL').eq([7]);
+  var cloud_med = image.select('SCL').eq([8]);
+  var cloud_high = image.select('SCL').eq([9]); 
+  var cloud_cirrus = image.select('SCL').eq([10]);
+  var cloud_mask = cloud_shadow.add(cloud_low).add(cloud_med).add(cloud_high).add(cloud_cirrus).add(nodata).add(saturated).add(dark_area); 
+  var invert_mask = cloud_mask.eq(0).selfMask();
+  return image.updateMask(invert_mask);
+}
 
-Map.addLayer(invert_mask)
-
-print(invert_mask)
-
+var s2=s2collection.map(maskS2clouds)
 
 
 
