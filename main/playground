@@ -17,7 +17,7 @@ var s2collection = ee.ImageCollection('COPERNICUS/S2_SR_HARMONIZED')
 
 print(s2collection)
 
-
+/*
 var rgbVis = {
   bands: ['B4', 'B3', 'B2'], // Red, Green, Blue
   min: 0,
@@ -25,7 +25,7 @@ var rgbVis = {
   gamma: 1.2
 };
 Map.addLayer(s2collection.first(),rgbVis,'rgb')
-
+*/
 
 
 function maskS2clouds(image){
@@ -44,7 +44,6 @@ function maskS2clouds(image){
 
 var s2=s2collection.map(maskS2clouds)
 
-
 var rgbVis = {
   bands: ['B4', 'B3', 'B2'], // Red, Green, Blue
   min: 0,
@@ -52,5 +51,17 @@ var rgbVis = {
   gamma: 1.2
 };
 Map.addLayer(s2.first(),rgbVis,'rgb_masked')
+
+
+function addNDVI(image){
+  var ndviband=image.normalizedDifference(['B8', 'B4']).rename('NDVI');
+  return ndviband
+}
+
+
+
+
+
+
 
 
