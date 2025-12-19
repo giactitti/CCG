@@ -1,3 +1,33 @@
+var studyArea = ee.Geometry.Polygon(
+  [[[11.0, 45.0],
+    [11.0, 44.5],
+    [11.7, 44.5],
+    [11.7, 45.0]]]
+);
+
+Map.addLayer(studyArea,{},'study area')
+
+var startYear = 2018;
+var endYear   = 2024;
+
+var s2collection = ee.ImageCollection('COPERNICUS/S2_SR_HARMONIZED')
+  .filterBounds(studyArea)
+  .filterDate(ee.Date.fromYMD(startYear, 1, 1) ,ee.Date.fromYMD(endYear, 12, 31))
+  .filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 20));
+
+  
+
+
+var cloud_low = s2collection.first().select('SCL').eq([6]);
+var cloud_med = s2collection.first().select('SCL').eq([8]);
+var cloud_high = s2collection.first().select('SCL').eq([9]); 
+var cloud_mask = cloud_low.add(cloud_med).add(cloud_high); 
+var invert_mask = cloud_mask.eq(0).selfMask();
+
+Map.addLayer(invert_mask)
+
+print(invert_mask)
+
 
 
 
