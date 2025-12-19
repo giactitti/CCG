@@ -58,6 +58,10 @@ function addNDVI(image){
   return ndviband
 }
 
+var ndvi=s2.map(addNDVI)
+
+print(ndvi)
+
 
 
 
