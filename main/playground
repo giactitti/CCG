@@ -16,19 +16,6 @@ var s2collection = ee.ImageCollection('COPERNICUS/S2_SR_HARMONIZED')
   .filterDate(ee.Date.fromYMD(startYear, 1, 1) ,ee.Date.fromYMD(endYear, 12, 31))
   .filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 20));
 
-//print(s2collection)
-
-/*
-var rgbVis = {
-  bands: ['B4', 'B3', 'B2'], // Red, Green, Blue
-  min: 0,
-  max: 3000,
-  gamma: 1.2
-};
-Map.addLayer(s2collection.first(),rgbVis,'rgb')
-*/
-
-
 function maskS2clouds(image){
   var nodata = image.select('SCL').eq([0]);
   var saturated = image.select('SCL').eq([1]);
@@ -53,38 +40,39 @@ var rgbVis = {
 };
 Map.addLayer(s2.first(),rgbVis,'rgb_masked');
 
-
 function addNDVI(image){
   var ndviband=image.normalizedDifference(['B8', 'B4']).rename('NDVI');
   return image.addBands(ndviband)
 }
 
-var ndvi=s2.map(addNDVI);
+var s2_ndvi=s2.map(addNDVI);
 
-print(ndvi.select('NDVI').max());
+//var ndvi_1year=s2_ndvi.select('NDVI').filterDate('2018-01-01','2018-12-31').mean()
 
-var ndviVis = {
-  min: 0,
-  max: 1,
-  palette: ['#d73027', '#f46d43', '#fee08b', '#d9ef8b', '#66bd63', '#1a9850']
-};
+var years = ee.List.sequence(startYear, endYear);
 
-var medianNdvi=ndvi.select('NDVI').mean()
+function ndvi_operation(year){
+  //y = ee.Number(year)
+  var start = ee.Date.fromYMD(year,1,1)
+  var end = ee.Date.fromYMD(year,12,31)
+  return s2_ndvi.select('NDVI').filterDate(start,end).mean()
+}
 
-//Map.addLayer(ndvi.select('NDVI').max().clip(studyArea),ndviVis,'max');
-//Map.addLayer(ndvi.select('NDVI').min().clip(studyArea),ndviVis,'min');
-Map.addLayer(medianNdvi,ndviVis,'mean');
+var ndvi_yearly= years.map(ndvi_operation);
+
+print(ndvi_yearly)
 
 
-Export.image.toDrive({
-  image: medianNdvi,
-  //description: 'Median_NDVI_S2_L1C_' + startYear + '_' + endYear,
-  //folder: 'GEE_exports',
-  //fileNamePrefix: 'median_ndvi_s2_l1c_' + startYear + '_' + endYear,
-  region: studyArea,
-  scale: 10,
-  //maxPixels: 1e13
-});
+var randomPointFc = ee.FeatureCollection.randomPoints({
+    region: studyArea,
+    points: 1,
+    seed: 42
+  });
+  
+var randomPoint = ee.Feature(randomPointFc.first()).geometry();
 
+Map.addLayer(randomPoint,{},'point')
+
+print(ee.FeatureCollection(ndvi_yearly).filterBounds(studyArea))
 
 
