@@ -47,8 +47,75 @@ function addNDVI(image){
 
 var s2_ndvi=s2.map(addNDVI);
 
-//var ndvi_1year=s2_ndvi.select('NDVI').filterDate('2018-01-01','2018-12-31').mean()
+print(s2_ndvi)
 
+var years = ee.List.sequence(startYear, endYear);
+
+var yearlyNdviFc = ee.ImageCollection(
+  years.map(function(y) {
+    y = ee.Number(y);
+    var start = ee.Date.fromYMD(y, 1, 1);
+    var end   = ee.Date.fromYMD(y, 12, 31);
+
+    // NDVI images for that year
+    var ndviYear = s2_ndvi
+      .filterDate(start, end)
+      .select('NDVI');
+
+    // Mean NDVI image over that year
+    var mean_ndviYear = ndviYear.mean();
+    return mean_ndviYear.set('system:time_start',y);
+  })
+);
+
+print(yearlyNdviFc)
+
+
+var randomPointFc = ee.FeatureCollection.randomPoints({
+    region: studyArea,
+    points: 1,
+    seed: 42
+  });
+  
+var randomPoint = ee.Feature(randomPointFc.first()).geometry();
+
+var ndviTsChart = ui.Chart.image.series({
+    imageCollection: yearlyNdviFc.select('NDVI'),
+    region: randomPoint,
+    reducer: ee.Reducer.mean(),
+    scale: 10
+  })
+  .setOptions({
+    title: 'NDVI time series at random point',
+    hAxis: {title: 'Date'},
+    vAxis: {title: 'NDVI'},
+    lineWidth: 2,
+    pointSize: 3
+  });
+  
+  print('NDVI trend at random point', ndviTsChart);
+
+
+var ndviTsChart = ui.Chart.image.series({
+    imageCollection: s2_ndvi.select('NDVI'),
+    region: randomPoint,
+    reducer: ee.Reducer.mean(),
+    scale: 10
+  })
+  .setOptions({
+    title: 'NDVI time series at random point',
+    hAxis: {title: 'Date'},
+    vAxis: {title: 'NDVI'},
+    lineWidth: 2,
+    pointSize: 3
+  });
+  
+  print('NDVI trend at random point', ndviTsChart);
+
+
+
+//var ndvi_1year=s2_ndvi.select('NDVI').filterDate('2018-01-01','2018-12-31').mean()
+/*
 var years = ee.List.sequence(startYear, endYear);
 
 function ndvi_operation(year){
@@ -73,6 +140,26 @@ var randomPoint = ee.Feature(randomPointFc.first()).geometry();
 
 Map.addLayer(randomPoint,{},'point')
 
-print(ee.FeatureCollection(ndvi_yearly).filterBounds(studyArea))
+var ndvi_yearly_collection=ee.FeatureCollection(ndvi_yearly);
+print(ndvi_yearly_collection)
+
+//print(ndvi_yearly_collection.reduceRegions(randomPoint,ee.Reducer.first()))
+
+var ndviTsChart = ui.Chart.image.series({
+    imageCollection: ndvi_yearly_collection,
+    region: randomPoint,
+    reducer: ee.Reducer.mean(),
+    scale: 10
+  })
+  .setOptions({
+    title: 'NDVI time series at random point',
+    hAxis: {title: 'Date'},
+    vAxis: {title: 'NDVI'},
+    lineWidth: 2,
+    pointSize: 3
+  });
+  
+  print('NDVI trend at random point', ndviTsChart);
+*/
 
 
