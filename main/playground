@@ -16,7 +16,7 @@ var s2collection = ee.ImageCollection('COPERNICUS/S2_SR_HARMONIZED')
   .filterDate(ee.Date.fromYMD(startYear, 1, 1) ,ee.Date.fromYMD(endYear, 12, 31))
   .filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 20));
 
-print(s2collection)
+//print(s2collection)
 
 /*
 var rgbVis = {
@@ -43,7 +43,7 @@ function maskS2clouds(image){
   return image.updateMask(invert_mask);
 }
 
-var s2=s2collection.map(maskS2clouds)
+var s2=s2collection.map(maskS2clouds);
 
 var rgbVis = {
   bands: ['B4', 'B3', 'B2'], // Red, Green, Blue
@@ -51,17 +51,40 @@ var rgbVis = {
   max: 3000,
   gamma: 1.2
 };
-Map.addLayer(s2.first(),rgbVis,'rgb_masked')
+Map.addLayer(s2.first(),rgbVis,'rgb_masked');
 
 
 function addNDVI(image){
   var ndviband=image.normalizedDifference(['B8', 'B4']).rename('NDVI');
-  return ndviband
+  return image.addBands(ndviband)
 }
 
-var ndvi=s2.map(addNDVI)
+var ndvi=s2.map(addNDVI);
 
-print(ndvi)
+print(ndvi.select('NDVI').max());
+
+var ndviVis = {
+  min: 0,
+  max: 1,
+  palette: ['#d73027', '#f46d43', '#fee08b', '#d9ef8b', '#66bd63', '#1a9850']
+};
+
+var medianNdvi=ndvi.select('NDVI').mean()
+
+//Map.addLayer(ndvi.select('NDVI').max().clip(studyArea),ndviVis,'max');
+//Map.addLayer(ndvi.select('NDVI').min().clip(studyArea),ndviVis,'min');
+Map.addLayer(medianNdvi,ndviVis,'mean');
+
+
+Export.image.toDrive({
+  image: medianNdvi,
+  //description: 'Median_NDVI_S2_L1C_' + startYear + '_' + endYear,
+  //folder: 'GEE_exports',
+  //fileNamePrefix: 'median_ndvi_s2_l1c_' + startYear + '_' + endYear,
+  region: studyArea,
+  scale: 10,
+  //maxPixels: 1e13
+});
 
 
 
