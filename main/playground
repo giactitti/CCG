@@ -160,7 +160,7 @@ var ndviTsChart = ui.Chart.image.series({
   });
   
   print('NDVI trend at random point', ndviTsChart);
-  ciao
+  
 */
 
 
