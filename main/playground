@@ -163,6 +163,5 @@ var ndviTsChart = ui.Chart.image.series({
   
 */
 
-print('hello')
 
 
